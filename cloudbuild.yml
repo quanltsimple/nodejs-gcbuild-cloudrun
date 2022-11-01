@@ -7,13 +7,17 @@ substitutions:
 
 steps:
 
+# Tag for Docker image
+  - name: 'ubuntu'
+    args: ['bash', '-c', 'date +%d%m%Y_%H%M > _TAG']
+  
 # Build Docker image
   - name: gcr.io/cloud-builders/docker
     args:
       - build
       - '--no-cache'
       - '-t'
-      - '$_GCR_HOSTNAME/$PROJECT_ID/$_IMAGE_NAME:$COMMIT_SHA'
+      - '$_GCR_HOSTNAME/$PROJECT_ID/$_IMAGE_NAME:$(cat _TAG)'
       - .
       - '-f'
       - Dockerfile
@@ -23,5 +27,5 @@ steps:
   - name: gcr.io/cloud-builders/docker
     args:
       - push
-      - '$_GCR_HOSTNAME/$PROJECT_ID/$_IMAGE_NAME:$COMMIT_SHA'
+      - '$_GCR_HOSTNAME/$PROJECT_ID/$_IMAGE_NAME:$(cat _TAG)'
     id: Push

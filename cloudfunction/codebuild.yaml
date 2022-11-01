@@ -1,0 +1,20 @@
+substitutions:
+  _FUNCTION_NAME: cloud-func-codebuild  # Your Cloud Run service name
+  _REGION: asia-southeast1 # Your region
+
+steps:
+
+  - name: 'gcr.io/cloud-builders/npm'
+    args: ['install']
+
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+    - functions
+    - deploy
+    - ${_FUNCTION_NAME}
+    - --region=${_REGION}
+    - --trigger-topic
+    - cloud-builds
+    - --memory=256
+    - --runtime=nodejs16
+    - --source=.

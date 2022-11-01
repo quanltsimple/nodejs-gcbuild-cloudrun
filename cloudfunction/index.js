@@ -1,24 +1,35 @@
 const IncomingWebhook = require('@slack/client').IncomingWebhook;
-const SLACK_WEBHOOK_URL = "<INSERT YOUR WEBHOOK FROM STEP 1.2>"
+const SLACK_WEBHOOK_URL = ""
 
 const webhook = new IncomingWebhook(SLACK_WEBHOOK_URL);
 
 // subscribe is the main function called by Cloud Functions.
-exports.subscribe = (event, callback) => {
- const build = eventToBuild(event.data.data);
+module.exports.helloPubSub = (event, callback) => {
+
+  const build = eventToBuild(event.data);
+  console.log(event.data);
 
   // Skip if the current status is not in the status list.
   // Add additional statues to list if you'd like:
   // QUEUED, WORKING, SUCCESS, FAILURE,
   // INTERNAL_ERROR, TIMEOUT, CANCELLED
-  const status = ['SUCCESS', 'FAILURE', 'INTERNAL_ERROR', 'TIMEOUT'];
+  const status = [
+    'SUCCESS',
+    'FAILURE',
+    'INTERNAL_ERROR',
+    'TIMEOUT',
+    'QUEUED',
+    'CANCELLED',
+  ];
   if (status.indexOf(build.status) === -1) {
-    return callback();
+    return '';
   }
 
   // Send message to Slack.
   const message = createSlackMessage(build);
-  webhook.send(message, callback);
+  (async () => {
+  await webhook.send(message);
+  })();
 };
 
 // eventToBuild transforms pubsub event message to a build object.
@@ -28,19 +39,41 @@ const eventToBuild = (data) => {
 
 // createSlackMessage create a message from a build object.
 const createSlackMessage = (build) => {
+  let buildId = build.id || '';
+  let buildCommit = build.substitutions.COMMIT_SHA || '';
+  let branch = build.substitutions.BRANCH_NAME || '';
+  let repoName = build.substitutions.repoName || ''; //Get repository name
+  let projectId = build.projectId || ''; //Get project id
+
   let message = {
-   text: `Build \`${build.id}\``,
+    text: `Build - \`${buildId}\``,
     mrkdwn: true,
     attachments: [
       {
-        title: 'Build logs - Your Custom Message Goes Here',
+        title: 'View Build Logs',
         title_link: build.logUrl,
-        fields: [{
-          title: 'Status',
-          value: build.status
-        }]
-      }
-    ]
+        fields: [
+          {
+            title: 'Status',
+            value: build.status,
+          },
+        ],
+      },
+      {
+        title: `Commit - ${buildCommit}`,
+        title_link: `https://source.cloud.google.com/${projectId}/${repoName}`, // Insert your Organization/Bitbucket/Github Url
+        fields: [
+          {
+            title: 'Branch',
+            value: branch,
+          },
+          {
+            title: 'Repository',
+            value: repoName,
+          },
+        ],
+      },
+    ],
   };
-  return message
-}
+  return message;
+};

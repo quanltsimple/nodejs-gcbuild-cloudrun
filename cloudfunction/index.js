@@ -7,6 +7,9 @@ const webhook = new IncomingWebhook(SLACK_WEBHOOK_URL);
 module.exports.helloPubSub = (event, callback) => {
 
   const build = eventToBuild(event.data);
+  let buildCommitCheck = build.substitutions.COMMIT_SHA || '';
+
+  // base64
   console.log(event.data);
 
   // Skip if the current status is not in the status list.
@@ -21,7 +24,7 @@ module.exports.helloPubSub = (event, callback) => {
     'QUEUED',
     'CANCELLED',
   ];
-  if (status.indexOf(build.status) === -1) {
+  if (status.indexOf(build.status) === -1 || buildCommitCheck === '') {
     return '';
   }
 
@@ -42,11 +45,11 @@ const createSlackMessage = (build) => {
   let buildId = build.id || '';
   let buildCommit = build.substitutions.COMMIT_SHA || '';
   let branch = build.substitutions.BRANCH_NAME || '';
-  let repoName = build.substitutions.repoName || ''; //Get repository name
+  let repoName = build.substitutions.REPO_NAME || ''; //Get repository name
   let projectId = build.projectId || ''; //Get project id
 
   let message = {
-    text: `Build - \`${buildId}\``,
+    text: `Git Repository: \`${repoName}\` - Build - \`${buildId}\``,
     mrkdwn: true,
     attachments: [
       {
@@ -68,9 +71,9 @@ const createSlackMessage = (build) => {
             value: branch,
           },
           {
-            title: 'Repository',
-            value: repoName,
-          },
+            title: 'Check PIC',
+            value: `<@Hello> san`,
+          }
         ],
       },
     ],

@@ -29,4 +29,5 @@ steps:
 # Deploy container image to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
-    args: [ 'run', 'deploy', '${_SERVICE_NAME}', '--image', 'asia.gcr.io/${_PROJECT_ID}/${_IMAGE_NAME}', '--region', '${_REGION}' ]
+    args: [ 'run', 'deploy', '${_SERVICE_NAME}', '--image', '$_GCR_HOST/$PROJECT_ID/$_IMAGE_NAME:$COMMIT_SHA', '--region', '${_REGION}' ]
+    id: Deploy

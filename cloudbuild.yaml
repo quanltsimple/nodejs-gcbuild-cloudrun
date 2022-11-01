@@ -6,11 +6,7 @@ substitutions:
   _GCR_HOST: asia.gcr.io # Your GCR Host
 
 steps:
-
-# Tag for Docker image
-  - name: 'ubuntu'
-    args: ['bash', '-c', 'date +%d%m%Y_%H%M > _TAG']
-  
+ 
 # Build Docker image
   - name: gcr.io/cloud-builders/docker
     args:
@@ -23,9 +19,14 @@ steps:
       - Dockerfile
     id: Build
 
-# Push Docker image to Container Registry
+# Push Docker image to Google Container Registry
   - name: gcr.io/cloud-builders/docker
     args:
       - push
       - '$_GCR_HOST/$PROJECT_ID/$_IMAGE_NAME:$COMMIT_SHA'
     id: Push
+    
+# Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [ 'run', 'deploy', '${_SERVICE_NAME}', '--image', 'asia.gcr.io/${_PROJECT_ID}/${_IMAGE_NAME}', '--region', '${_REGION}' ]

@@ -1,0 +1,27 @@
+substitutions:
+  _IMAGE_NAME: hello-nodejs # Your name image
+  _GCS_CACHE_BUCKET: cloud-build-maven-cache # Your bucket
+  _SERVICE_NAME: hello-nodejs-srv # Your Cloud Run service name 
+  _REGION: asia-southeast1 # Your region
+  _GCR_HOST: asia.gcr.io # Your GCR Host
+
+steps:
+
+# Build Docker image
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - '--no-cache'
+      - '-t'
+      - '$_GCR_HOSTNAME/$PROJECT_ID/$_IMAGE_NAME:$COMMIT_SHA'
+      - .
+      - '-f'
+      - Dockerfile
+    id: Build
+
+# Push Docker image to Container Registry
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - '$_GCR_HOSTNAME/$PROJECT_ID/$_IMAGE_NAME:$COMMIT_SHA'
+    id: Push
